@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { IconDocument } from '#components';
+import { getResponseFromApi } from '~/repositories/getResponseFromapi';
 useHead({
   title:'Resume Review'
 })
@@ -20,11 +21,17 @@ const handleFileChange = (event: Event):void=>{
     error.value = "Please select a PDF file before"
   }
 }
-const handleReview = ():void=>{
+const handleReview = async()=>{
   if (!file.value){
     error.value = "Please select a PDF file before"
   }else{
-    //send to ai review
+    const base64 = await fileToBase64(file.value)
+    console.log(base64);
+    
+    const response = await getResponseFromApi(promptText.value, base64, checkboxs.value)
+    result.value = response
+    console.log(response);
+    
   }
 }
 watch(file, (newval, oldval) => {
