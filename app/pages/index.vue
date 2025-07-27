@@ -11,7 +11,7 @@ const items = ref<string[]>(['Software Development', 'Data Science', 'Design', '
 const checkboxs = ref<string[]>([])
 const promptText = ref<string>("")
 const error = ref<string>("")
-const err = ref<boolean>(false)
+const err = ref<Number>(2)
 const result = ref<string>("")
 const isShow = ref<boolean>(false)
 const handleFileChange = (event: Event):void=>{
@@ -27,15 +27,35 @@ const handleFileChange = (event: Event):void=>{
 const handleReview = async()=>{
   if (!file.value){
     error.value = "Please select a PDF file before"
-    err.value = true
+    err.value = 0
+    isShow.value = true
+    setTimeout(()=>{
+      isShow.value =false
+      error.value = ""
+      err.value = 1
+    },3000)
   }else{
     const base64 = await fileToBase64(file.value)
     isShow.value = true
     result.value = "In progress..."
-    const response = await getResponseFromApi(promptText.value, base64, checkboxs.value)
-    result.value = response
-    isShow.value = false
-    err.value = false
+    err.value = 1
+    try{
+      const response = await getResponseFromApi(promptText.value, base64, checkboxs.value)
+      result.value = "Successfully received your resume review. Please check the result below."
+      err.value = 2
+      setTimeout(()=>{
+        isShow.value = false
+        result.value = response
+      },3000)
+    }catch(e:any){
+      error.value = e.message || "An error occurred while processing your request."
+      err.value = 0
+      setTimeout(()=>{
+        isShow.value = false
+        error.value = ""
+      },3000)
+    }
+    
   }
 }
 watch(file, (newval, oldval) => {
@@ -48,7 +68,9 @@ watch(file, (newval, oldval) => {
 })
 </script>
 <template>
-  <BaseResponse v-if="isShow" :result="result" :err="err" class=" fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></BaseResponse>
+  <Transition name="fade">
+    <BaseResponse v-if="isShow" :result="err == 0 ? error:result" :err="err" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></BaseResponse>
+  </Transition>
   <div class=" relative min-h-screen bg-gradient-to-b from-gray-50 to-gray-200 py-16 flex flex-col items-center justify-start gap-10">
     <h1 id="Home" class=" text-6xl md:text-7xl lg:text-8xl font-extrabold text-center leading-tight tracking-tight text-gray-800">Review Resume</h1>
     <h2 class=" text-center text-lg md:text-xl text-gray-600 mt-5">PDF files only</h2>
@@ -91,3 +113,15 @@ watch(file, (newval, oldval) => {
     </section>
   </div>
 </template>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

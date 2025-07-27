@@ -9,9 +9,14 @@ export async function getResponseFromApi(prompt: string, base64File: string, che
   2. Strong point of this resume.
   3. Weak point of this resume.
   4. Suggestions to improve this resume.`
-  const res = await $fetch('/api/genai', {
-    method: 'POST',
-    body: { prompt: text, base64File: base64File },
-  });
-  return res as string;
+  try{
+    const res = await $fetch('/api/genai', {
+      method: 'POST',
+      body: { prompt: text, base64File: base64File },
+    });
+    return res.text as string;
+  }catch(error : any){
+    throw new Error(`Error fetching response from API: ${error.message}`);
+  }
+  
 }
