@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { IconDocument } from '#components';
+import BaseResponse from '~/components/ฺBaseResponse.vue';
 import { getResponseFromApi } from '~/repositories/getResponseFromapi';
 useHead({
   title:'Resume Review'
@@ -10,7 +11,9 @@ const items = ref<string[]>(['Software Development', 'Data Science', 'Design', '
 const checkboxs = ref<string[]>([])
 const promptText = ref<string>("")
 const error = ref<string>("")
+const err = ref<boolean>(false)
 const result = ref<string>("")
+const isShow = ref<boolean>(false)
 const handleFileChange = (event: Event):void=>{
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0){
@@ -24,14 +27,15 @@ const handleFileChange = (event: Event):void=>{
 const handleReview = async()=>{
   if (!file.value){
     error.value = "Please select a PDF file before"
+    err.value = true
   }else{
     const base64 = await fileToBase64(file.value)
-    console.log(base64);
-    
+    isShow.value = true
+    result.value = "In progress..."
     const response = await getResponseFromApi(promptText.value, base64, checkboxs.value)
     result.value = response
-    console.log(response);
-    
+    isShow.value = false
+    err.value = false
   }
 }
 watch(file, (newval, oldval) => {
@@ -44,7 +48,8 @@ watch(file, (newval, oldval) => {
 })
 </script>
 <template>
-  <div class=" min-h-screen bg-gradient-to-b from-gray-50 to-gray-200 py-16 flex flex-col items-center justify-start gap-10">
+  <BaseResponse v-if="isShow" :result="result" :err="err" class=" fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></BaseResponse>
+  <div class=" relative min-h-screen bg-gradient-to-b from-gray-50 to-gray-200 py-16 flex flex-col items-center justify-start gap-10">
     <h1 id="Home" class=" text-6xl md:text-7xl lg:text-8xl font-extrabold text-center leading-tight tracking-tight text-gray-800">Review Resume</h1>
     <h2 class=" text-center text-lg md:text-xl text-gray-600 mt-5">PDF files only</h2>
     <div id="Upload Resume" class="relative flex flex-col justify-center items-center gap-6 border-4 border-gray-300 p-8 md:p-12 w-fit mx-auto rounded-2xl border-dashed mt-10  max-w-lg">

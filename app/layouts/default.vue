@@ -7,7 +7,7 @@ function handleNavigate(id:string):void{
 
 <template>
     <BaseNavbar @navigate="handleNavigate"/>
-    <main>
+    <main class=" relative">
         <slot/>
     </main>
 </template>
